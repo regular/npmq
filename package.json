@@ -15,9 +15,12 @@
     "flumelog-offset": "^3.0.2",
     "flumeview-level": "^2.0.3",
     "flumeview-query": "^3.0.3",
+    "flumeview-reduce": "^1.1.0",
     "pull-many": "^1.0.8",
     "pull-ndjson": "^0.1.1",
     "pull-sort": "^1.0.0",
+    "pull-spawn": "0.0.7",
+    "pull-spawn-process": "^0.3.0",
     "pull-stdio": "^0.1.0",
     "pull-stream": "^3.6.0"
   }

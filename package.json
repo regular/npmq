@@ -1,0 +1,22 @@
+{
+  "name": "npm-dump",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "flumecodec": "0.0.0",
+    "flumedb": "^0.2.3",
+    "flumelog-offset": "^3.0.2",
+    "flumeview-level": "^2.0.3",
+    "flumeview-query": "^3.0.3",
+    "pull-ndjson": "^0.1.1",
+    "pull-stdio": "^0.1.0",
+    "pull-stream": "^3.6.0"
+  }
+}

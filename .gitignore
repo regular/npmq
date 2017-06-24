@@ -1,0 +1,6 @@
+flume-data
+hypercore
+node_modules
+samples/data_sample_1000_records
+*.swp
+

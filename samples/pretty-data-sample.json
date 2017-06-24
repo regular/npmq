@@ -1,0 +1,195 @@
+// cat data-sample.json|while read row; do echo $row| json-prettify; done > pretty-data-sample.json
+{
+    "name": "Reston"
+  , "version": "0.1.1"
+  , "description": "An improved HTTP client library for node.js"
+  , "contributors": [
+      {
+        "name": "Zohaib Sibt-e-Hassan"
+      , "email": "zohaib.hassan@gmail.com"
+    }
+  ]
+  , "homepage": "https://github.com/maxpert/Reston"
+  , "engines": {
+      "node": ">=0.2.5"
+  }
+  , "main": "./lib/Reston"
+  , "repository": "git://github.com/maxpert/Reston.git"
+  , "author": null
+  , "_id": "Reston@0.1.1"
+  , "_engineSupported": true
+  , "_npmVersion": "0.2.18"
+  , "_nodeVersion": "v0.4.0"
+  , "directories": {
+      "lib": "./lib"
+  }
+  , "files": [
+      ""
+  ]
+  , "_defaultsLoaded": true
+  , "dist": {
+      "shasum": "934758bd8eda6481218e0d6c29dab8c10d573c5c"
+    , "tarball": "http://registry.npmjs.org/Reston/-/Reston-0.1.1.tgz"
+  }
+}
+{
+    "name": "Reston"
+  , "version": "0.2.0"
+  , "description": "An improved HTTP client library for node.js"
+  , "contributors": [
+      {
+        "name": "Zohaib Sibt-e-Hassan"
+      , "email": "zohaib.hassan@gmail.com"
+    }
+  ]
+  , "homepage": "https://github.com/maxpert/Reston"
+  , "engines": {
+      "node": ">=0.2.5"
+  }
+  , "main": "./lib/Reston"
+  , "repository": "git://github.com/maxpert/Reston.git"
+  , "author": {
+      "name": "Zohaib Sibt-e-Hassan"
+    , "url": "http://maxpert.net.tc/"
+  }
+  , "_id": "Reston@0.2.0"
+  , "_engineSupported": true
+  , "_npmVersion": "0.2.18"
+  , "_nodeVersion": "v0.4.0"
+  , "directories": {
+      "lib": "./lib"
+  }
+  , "files": [
+      ""
+  ]
+  , "_defaultsLoaded": true
+  , "dist": {
+      "shasum": "18f4c291eaf1b0fc3a9a168d5aa685febc5068ff"
+    , "tarball": "http://registry.npmjs.org/Reston/-/Reston-0.2.0.tgz"
+  }
+}
+{
+    "name": "asyncevents"
+  , "version": "0.1.0"
+  , "description": "Extension to EventEmitter to facilitate asynchronous firing of events, and asynchronous handling of those events."
+  , "keywords": "async,events,eventemitter,async events"
+  , "author": {
+      "name": "Sam Day"
+    , "email": "sam.c.day@gmail.com"
+  }
+  , "main": "./index"
+  , "engines": {
+      "node": ">= 0.2.0"
+  }
+  , "dependencies": {
+      "vows": ">= 0.5.6"
+  }
+  , "repository": {
+      "type": "git"
+    , "url": "https://github.com/samcday/asyncevents.git"
+  }
+  , "_id": "asyncevents@0.1.0"
+  , "_engineSupported": true
+  , "_npmVersion": "0.2.14-5"
+  , "_nodeVersion": "v0.3.6"
+  , "directories": {
+      "lib": "./lib"
+  }
+  , "modules": {
+      "asyncevents.js": "lib/asyncevents.js"
+  }
+  , "files": [
+      ""
+  ]
+  , "_defaultsLoaded": true
+  , "dist": {
+      "shasum": "00a2b5e0beb0ae48149c921ba3254f75bbc58efa"
+    , "tarball": "http://registry.npmjs.org/asyncevents/-/asyncevents-0.1.0.tgz"
+  }
+}
+{
+    "name": "ClearSilver"
+  , "keywords": [
+      "template engine"
+    , "ClearSilver"
+  ]
+  , "description": "ClearSilver template engine bindings for node.js"
+  , "homepage": "http://github.com/mah0x211/node-clearsilver"
+  , "version": "0.5.0"
+  , "license": [
+      {
+        "type": "BSD"
+    }
+  ]
+  , "main": "./lib/ClearSilver"
+  , "directories": {
+      "lib": "./lib"
+  }
+  , "scripts": {
+      "install": "./install.sh"
+  }
+  , "engines": {
+      "node": ">= 0.3.7"
+  }
+  , "maintainers": [
+      {
+        "name": "Masatoshi Teruya"
+      , "email": "mah0x211@gmail"
+      , "url": "http://kontext.jp/"
+    }
+  ]
+  , "repository": {
+      "type": "git"
+    , "url": "http://github.com/mah0x211/node-clearsilver.git"
+  }
+  , "bugs": {
+      "url": "http://github.com/mah0x211/node-clearsilver/issues"
+  }
+  , "_id": "ClearSilver@0.5.0"
+  , "_engineSupported": true
+  , "_npmVersion": "0.2.17"
+  , "_nodeVersion": "v0.4.0"
+  , "files": [
+      ""
+  ]
+  , "_defaultsLoaded": true
+  , "dist": {
+      "shasum": "105e94cdd342dfea043a83a381e46e8a6fb1fa47"
+    , "tarball": "http://registry.npmjs.org/ClearSilver/-/ClearSilver-0.5.0.tgz"
+  }
+}
+{
+    "name": "FreshDocs"
+  , "description": "MongoDB ODM that keeps your docs from getting stale"
+  , "version": "0.0.2"
+  , "repository": {
+      "type": "git"
+    , "url": "git://github.com/xcoderzach/FreshDocs.git"
+  }
+  , "author": {
+      "name": "Zach Smith"
+    , "email": "x.coder.zach@gmail.com"
+  }
+  , "main": "index.js"
+  , "directories": {
+      "lib": "."
+  }
+  , "scripts": {
+      "test": "nodeunit test/*"
+  }
+  , "engines": {
+      "node": "*"
+  }
+  , "_id": "FreshDocs@0.0.2"
+  , "_engineSupported": true
+  , "_npmVersion": "0.3.12"
+  , "_nodeVersion": "v0.4.2"
+  , "files": [
+      ""
+  ]
+  , "_defaultsLoaded": true
+  , "dist": {
+      "shasum": "95ead49d4bbc553c7dc9247b6ef98399d91d91a4"
+    , "tarball": "http://registry.npmjs.org/FreshDocs/-/FreshDocs-0.0.2.tgz"
+  }
+}

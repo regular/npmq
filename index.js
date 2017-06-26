@@ -1,19 +1,36 @@
-var pull = require('pull-stream')
+const pull = require('pull-stream')
 const spawn = require('pull-spawn-process')
-var Flume = require('flumedb')
-//var FlumeQuery = require('flumeview-query')
-var Index = require('flumeview-level')
-var Reduce = require('flumeview-reduce')
+const Flume = require('flumedb')
+const Index = require('flumeview-level')
+const Reduce = require('flumeview-reduce')
 const sort = require('pull-sort')
 const many = require('pull-many')
+const defer = require('pull-defer')
+//const mapLast = require('pull-map-last')
 
 const transformRecords = require('./transform')
 
-var OffsetLog = require('flumelog-offset')
-var codec = require('flumecodec')
+const OffsetLog = require('flumelog-offset')
+const codec = require('flumecodec')
+
+function parseId(id) {
+  if (id[0]==='@') {
+    let [_,name,version] = id.split('@')
+    return [`@${name}`, version]
+  } else {
+    return id.split('@')
+  }
+}
 
 const db = Flume(OffsetLog("flume-data/flume-npm.db", codec.json))
-  .use('numRecords', Reduce(1, (acc, item) => (acc || 0) + 1 ))
+  .use('numRecords', Reduce(1, (acc) => (acc || 0) + 1 ))
+  .use('version', Index(3, (e) => {
+    // npm-ssb@0100ab (sorts correctly)
+    if (!e._id) return []
+    let [name, version] = parseId(e._id)
+    if (!name || !version) return []
+    return [`${name}@${Buffer.from(version.split('.')).toString('hex')}`]
+  }))
   .use('deps', Index(8, function (e) {
     // pull-stream:npm-ssb@1.1.0:~2.4.x
     let deps = e.dependencies||{};
@@ -32,14 +49,21 @@ const db = Flume(OffsetLog("flume-data/flume-npm.db", codec.json))
   .use('author', Index(5, function (e) {
     // janblsche:npm-ssb
     if (!e._id) return []
-    let [name,version] = e._id.split('@')
+    let [name,version] = parseId(e._id)
     return [getName(e).replace(/[^a-zA-Z]/g, '').toLowerCase()+":"+name]
   }))
   .use('user', Index(7, function (e) {
     // regular:npm-ssb
     if (!e._id) return []
-    let [name,version] = e._id.split('@')
+    let [name,version] = parseId(e._id)
     return [getUser(e)+":"+name]
+  }))
+  .use('require', Index(11, function (e) {
+    // npm-ssb@1.1.0:pull-stream
+    let deps = Object.keys( e.dependencies || {}).concat(
+      Object.keys( e.devDependencies || {})
+    )
+    return deps.map( (d)=>`${e._id}:${d}` )
   }))
 
 function getName(e) {
@@ -59,10 +83,10 @@ function byPackageName(name) {
 }
 
 function authoredBy(realName) {
-    return db.author.read({
-        'gt': realName + ':',
-        'lt': realName + ':~'  
-    })
+  return db.author.read({
+      'gt': realName + ':',
+      'lt': realName + ':~'  
+  })
 }
 
 function publishedByUser(user) {
@@ -72,8 +96,42 @@ function publishedByUser(user) {
   })
 }
 
+function dependingOn(name) {
+  // tape:npm-ssb@1.1.0:~2.4.x
+  return db.deps.read({
+    'gt': name + ':',
+    'lt': name + ':~'
+  })
+}
+
+/*
+function last() {
+  let last
+  return pull(
+    mapLast( (e)=>{
+      last = e
+      return null
+    }, ()=>last ),
+    pull.filter()
+  )
+}
+*/
+
+function dependencies() {
+  return pull(
+    pull.map(
+      (e)=> Object.keys( e.value.dependencies || {}).concat(
+        Object.keys( e.value.devDependencies || {})
+      )
+    ),
+    pull.flatten(),
+    pull.unique()
+  )
+}
+
+// --
 function name() {
-    return pull.map( (e)=> (((e.value || {})._id) || "n/a@").split('@')[0] )
+  return pull.map( (e)=> parseId((((e.value || {})._id) || "n/a@"))[0] )
 }
 
 function details() {
@@ -89,7 +147,7 @@ function logAndCount() {
     count ++
     console.log(`- ${count} ${e}`)
   }, (err)=>{
-    if (err) console.log(err)
+    console.log('END', err)
   })
 }
 
@@ -119,8 +177,8 @@ function whatDoTheyUse() {
         return s
       }
     })()),
-    sort( (a, b)=> b.count - a.count ),
     pull.unique( (e)=> e.name ),
+    sort( (a, b)=> b.count - a.count ),
     pull.asyncMap( (e, cb)=>{
       let account
       pull(
@@ -142,7 +200,7 @@ function appendLogStream(inputfile) {
   let i = 0
   setInterval( ()=>{
     db.numRecords.get( (err, records) => {
-      process.stderr.write(`\rSyncing ... (${records} records in log. Hit Ctrl-C to exit.) ${'⠁⠃⠇⠃'[i = (i+1) % 4]}`)
+      //process.stderr.write(`\rSyncing ... (${records} records in log. Hit Ctrl-C to exit.) ${'⠁⠃⠇⠃'[i = (i+1) % 4]}`)
     })
   }, 1000)
 
@@ -168,16 +226,109 @@ function goodModules() {
   pull(
     //publishedByUser('regular'),
     many([
-      publishedByUser('raynos'),
-      publishedByUser('rvagg'),
+      //publishedByUser('raynos'),
+      //publishedByUser('rvagg'),
+      publishedByUser('maxogden'),
+      publishedByUser('mafintosh'),
       publishedByUser('substack'),
       authoredBy('dominictarr')
     ]),
     whatDoTheyUse(),
-    pull.take(30),
+    pull.take(50),
     //details(),
     logAndCount()
   )
 }
 
-goodModules()
+//goodModules()
+
+function dependenciesOf(name) {
+  //console.log('DEPS OF', name)
+  // npm-ssb@1.1.0:pull-stream
+  // npm-ssb@1.1.0:pull-sort
+  let ret = defer.source()
+  pull(
+    db.version.read({
+      'gt': `${name}@`,
+      'lt': `${name}@~`,
+      reverse: true
+    }),
+    pull.take(1),
+    pull.collect( (err, updates)=>{
+      if (err) return ret.resolve(pull.error(err))
+      if (!updates.length) {
+        console.log('NO PUBLISH FOUND FOR', name)
+        //return ret.resolve(pull.error(new Error(`No updates fround for ${name}`)))
+        return ret.resolve(pull.empty())
+      }
+      let latest = updates[0].value._id
+      //console.log(`latest version of ${name} is ${latest}`)
+      ret.resolve(
+        pull(
+          db.require.read({
+            'gt': `${latest}:`,
+            'lt': `${latest}:~`
+          }),
+          pull.map( (e)=>e.key.split(':')[1] )
+        )
+      )
+    })
+  )
+  return ret
+  /*
+  return pull(
+    byPackageName(name),
+    sort( (a,b)=> b.seq - a.seq),
+    pull.take(1),
+    //pull.through( (e)=>{ console.log(e.value._id) }),
+    dependencies()
+  )
+  */
+}
+
+function transitiveDependenciesOf(name) {
+  //console.log(`outer ${name}`)
+
+  let seen = []
+  function isNew(name) {
+    if (seen.indexOf(name) === -1) {
+      seen.push(name);
+      return true
+    }
+    return false
+  }
+
+  function _transitiveDependenciesOf(name) {
+    if (!isNew(name)) return pull.empty()
+    return pull(
+      dependenciesOf(name),
+      //pull.through(console.log),
+      pull.asyncMap( (name, cb)=>{
+        pull(
+          _transitiveDependenciesOf(name),
+          pull.collect( (err, deps) => {
+            if (err) return cb(err)
+            cb(null, [name].concat(deps) )
+          })
+        )
+      }),
+      pull.flatten()
+    )
+  }
+  
+  return pull(
+    _transitiveDependenciesOf(name),
+    pull.unique()
+  )
+}
+
+function scuttleverse() {
+  pull(
+    transitiveDependenciesOf(process.argv[2]),
+    sort( (a,b)=>a.localeCompare(b) ),
+    logAndCount()
+  )  
+}
+
+scuttleverse()
+

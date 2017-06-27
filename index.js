@@ -95,15 +95,17 @@ function logAndCount() {
   })
 }
 
-function whatDoTheyUse() {
+function whatDoTheyUse(opts) {
+  opts = opts || {}
   return pull( 
-    pull.map(
-      (e)=> Object.keys( e.value.dependencies || {}).concat(
-        Object.keys( e.value.devDependencies || {})
-      ).map( (n) => {
+    pull.map( (e)=>{
+      let deps = Object.keys( e.value.dependencies || {})
+      if (opts.dev)
+        deps = deps.concat( Object.keys( e.value.devDependencies || {}))
+      return deps.map( (n) => {
         return {name:n, seq:e.seq}
       })
-    ),
+    }),
     pull.flatten(),
     pull.map( (()=>{ 
       let stats = {}
@@ -135,8 +137,8 @@ function whatDoTheyUse() {
           cb(null, e)
         })
       )
-    }),
-    pull.map( (e)=> `${e.count}x ${e.name} by ${e.accounts} from: ${e.firstSeen} - ${e.lastSeen}`)
+    })
+    //, pull.map( (e)=> `${e.count}x ${e.name} by ${e.accounts} from: ${e.firstSeen} - ${e.lastSeen}`)
   )
 }
 
@@ -227,5 +229,15 @@ function showDependencies(name) {
 
 //showDependencies('pull-stream')
 
-scuttleverse()
-
+//scuttleverse()
+module.exports = {
+  whatDoTheyUse: function(authors, opts) {
+    opts = opts || {}
+    let limit = opts.limit || 40
+    return pull(
+      many( authors.map( Q.byPublisher ) ),
+      whatDoTheyUse(opts),
+      pull.take(limit)
+    )
+  }
+}

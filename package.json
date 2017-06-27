@@ -6,6 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": {
+    "npm-graph": "./bin.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -30,6 +33,7 @@
     "pull-spawn-process": "^0.3.0",
     "pull-stdio": "^0.1.0",
     "pull-stream": "^3.6.0",
-    "semver": "^5.3.0"
+    "semver": "^5.3.0",
+    "zerr": "^1.0.4"
   }
 }

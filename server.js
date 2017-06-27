@@ -7,16 +7,29 @@ var mdm = require('mdmanifest')
 const muxrpc = require('muxrpc')
 const tcp = require('pull-net/server')
 
+var MissingArgError = zerr('BadArg', '"%" is required')
+var BadTypeError = zerr('BadArg', '"%" must be a valid %')
+
 var mdmanifest = fs.readFileSync(`${__dirname}/manifest.md`, 'utf8')
 var manifest = mdm.manifest(mdmanifest)
 
 const api = {
-  usage: (command, cb)=>{
+  usage: function (command, cb) {
+    console.log(arguments)
+    if (typeof command === 'function') {
+      cb = command
+      command = null
+    }
+    console.log(typeof cb)
     cb(null, mdm.usage(mdmanifest, command))
   },
-  whatDoTheyUse: function(authors, opts) {
+  whatDoTheyUse: function() {
+    const authors = Array.from(arguments).filter( (e)=>typeof e === 'string') 
+    let opts
+    typeof (opts = Array.from(arguments).pop()) === 'object' || (opts = {})
+    if (!authors.length) return pull.error(MissingArgError('authors'))
     console.log(authors, opts)
-    return pull.values('hello', 'world')
+    return pull.values(['hello', 'world'])
   }
 }
 

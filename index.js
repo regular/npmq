@@ -1,4 +1,5 @@
 const pull = require('pull-stream')
+const cat = require('pull-cat')
 const spawn = require('pull-spawn-process')
 const Flume = require('flumedb')
 const sort = require('pull-sort')
@@ -231,15 +232,53 @@ function showDependencies(name) {
 
 //scuttleverse()
 module.exports = {
-  whois: function(name) {
-    const ret = defer.source()
-    Q.authorByUser(name, (err, candidates)=>{
-      ret.resolve(err ? 
-        pull.error(err) : 
-        pull.values(candidates)
-      )
-    })
-    return ret
+  whois: function(name, opts) {
+    opts = opts || {}
+    minConfidence = 'minConfidence' in opts ? opts.minConfidence : 0.2
+    console.log(minConfidence)
+    const counters = {}
+    const totals = {author:0, user:0}
+
+    function reducer(propName) {
+      return pull.through( (e)=>{
+        const key = `${e.user}\t${e.author}`
+        const count = counters[key] || (counters[key] = {author:0,user:0})
+        count[propName] = e.count
+        totals[propName] += e.count
+      })
+    }
+    
+    return pull( 
+      cat([
+        many([
+          pull(Q.authorByUser(name), reducer('user')),
+          pull(Q.userByAuthor(name), reducer('author'))
+        ]),
+        pull(
+          pull.once('whatever'), pull.asyncMap( (_, cb)=> pull(
+            pull.keys(counters),
+            pull.map( (k)=>{
+              const [user, author] = k.split('\t')
+              const propIsUser = counters[k].user / totals.user
+              const propIsAuthor = counters[k].author / totals.author
+              return [{
+                author: author,
+                confidence: propIsUser
+              }, {
+                user: user,
+                confidence: propIsAuthor
+              }]
+            }),
+            pull.flatten(),
+            pull.filter( (e)=> e.confidence > minConfidence),
+            sort( (a, b)=> b.confidence - a.confidence),
+            pull.collect(cb)
+          )),
+          pull.flatten()
+        )
+      ]),
+      pull.filter( (e)=> e.confidence || opts.raw )
+    )
   },
   whatDoTheyUse: function(authors, opts) {
     opts = opts || {}

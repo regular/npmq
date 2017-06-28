@@ -23,16 +23,19 @@ usage(command)
 Get the real name of an npm user
 
 ```bash
-whois {name}
+whois {name} [--minConfidence number --raw boolean]
 ```
 
 ```js
-whois(name)
+whois(name, { minConfidence:, raw: })
 ```
 
- - name: the name of an npm account
+ - name: the name of an npm account or the real name of an author
+ - opts:
+   - minConfidence: optional, suppress improbable items. (defaults to 0.2) 
+   - raw: stream raw views (defaults to false)
 
-Returns a stream of possible real names complete with confidence levels between 0 and 1
+Returns a stream of possible author names and/or user names complete with confidence levels between 0 and 1
 
 ## whatDoTheyUse: source
 
@@ -49,7 +52,7 @@ whatDoTheyUse(authors, { limit:, dev: })
  - authros: array, a list of authors. Can be real names or npm user names.
  - opts:
    - limit: optional number, how many items to return
-   - dev: include devDependencies (defaults to true(
+   - dev: include devDependencies (defaults to true)
 
 Finds all direct dependencies of modules published by the given authors and counts how often they are depended upon by this group of authors cumulatively. Sorts by descending popularity.
 

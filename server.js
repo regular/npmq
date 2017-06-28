@@ -23,9 +23,9 @@ const api = {
     console.log(typeof cb)
     cb(null, mdm.usage(mdmanifest, command))
   },
-  whois: function(name) {
+  whois: function(name, opts) {
     if (!name) return pull.error(MissingArgError('name'))
-    return commands.whois(name)
+    return commands.whois(name, opts)
   },
   whatDoTheyUse: function() {
     const authors = Array.from(arguments).filter( (e)=>typeof e === 'string') 

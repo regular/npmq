@@ -9,6 +9,15 @@ const u = require('./util')
 module.exports =function (db) {
   db
   .use('numRecords', Reduce(1, (acc) => (acc || 0) + 1 ))
+  .use('userByAuthor', Reduce(2, (acc, {user, author}) => {
+    acc = acc || {}
+    const counters = acc[author] || (acc[author] = {})
+    counters[user] = (counters[user] || 0) + 1
+    return acc
+  }, (e)=>{
+    if (!(e._npmUser && e._npmUser.name) || !(e.author && e.author.name)) return null
+    return {user: e._npmUser.name, author: e.author.name}
+  }))
   .use('authorByUser', Reduce(2, (acc, {user, author}) => {
     acc = acc || {}
     const counters = acc[user] || (acc[user] = {})
@@ -69,23 +78,25 @@ module.exports =function (db) {
     )
   }))
 
-  function authorByUser(user, cb) {
-    db.authorByUser.get( (err, users)=>{
-      if (err) return cb(err)
-      const authors = users[user] || {}
-      const total = Object.keys(authors).reduce( (acc, k)=> acc += authors[k] , 0)
-      const list = Object.keys(authors).reduce( (acc, author)=>{
-        acc.push({
-          author,
-          confidence: authors[author] / total
-        })
-        return acc
-      }, [])
-      list.sort( (a, b)=> b.confidence - a.confidence )
-      cb(null, list) 
-    })
+  function makeWhoIsQuery(view, propName, searchByProp) {
+    return function (name) {
+      const ret = defer.source()
+      view.get( (err, index)=> ret.resolve(
+        err ? 
+        pull.error(err) : 
+        pull(
+          pull.keys(index[name] || {}),
+          pull.map( (candidate)=>({
+            [propName]: candidate,
+            [searchByProp]: name,
+            count: index[name][candidate]
+          }))
+        )
+      ))
+      return ret
+    }
   }
-  
+
   function byName(name, opts) {
     return db.version.read(Object.assign({
       'gt': name + '@',
@@ -151,7 +162,8 @@ module.exports =function (db) {
   }
 
   return {
-    authorByUser,
+    userByAuthor: makeWhoIsQuery(db.userByAuthor, 'user', 'author'),
+    authorByUser: makeWhoIsQuery( db.authorByUser, 'author', 'user'),
     byName,
     byId,
     byAuthor,

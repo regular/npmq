@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "prepare": "make",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
@@ -14,6 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "debug": "^2.6.8",
+    "ecstatic": "^2.2.1",
     "flumecodec": "0.0.0",
     "flumedb": "^0.2.3",
     "flumelog-offset": "^3.0.2",
@@ -33,7 +35,12 @@
     "pull-spawn-process": "^0.3.0",
     "pull-stdio": "^0.1.0",
     "pull-stream": "^3.6.0",
+    "pull-ws": "^3.2.9",
     "semver": "^5.3.0",
     "zerr": "^1.0.4"
+  },
+  "devDependencies": {
+    "brfs": "^1.4.3",
+    "browserify": "^14.4.0"
   }
 }

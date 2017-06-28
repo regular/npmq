@@ -231,6 +231,16 @@ function showDependencies(name) {
 
 //scuttleverse()
 module.exports = {
+  whois: function(name) {
+    const ret = defer.source()
+    Q.authorByUser(name, (err, candidates)=>{
+      ret.resolve(err ? 
+        pull.error(err) : 
+        pull.values(candidates)
+      )
+    })
+    return ret
+  },
   whatDoTheyUse: function(authors, opts) {
     opts = opts || {}
     let limit = opts.limit || 40

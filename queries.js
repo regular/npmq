@@ -9,6 +9,15 @@ const u = require('./util')
 module.exports =function (db) {
   db
   .use('numRecords', Reduce(1, (acc) => (acc || 0) + 1 ))
+  .use('authorByUser', Reduce(2, (acc, {user, author}) => {
+    acc = acc || {}
+    const counters = acc[user] || (acc[user] = {})
+    counters[author] = (counters[author] || 0) + 1
+    return acc
+  }, (e)=>{
+    if (!(e._npmUser && e._npmUser.name) || !(e.author && e.author.name)) return null
+    return {user: e._npmUser.name, author: e.author.name}
+  }))
   .use('version', Index(3, (e) => {
     // npm-ssb@0100ab (sorts correctly)
     if (!e._id) return []
@@ -60,6 +69,23 @@ module.exports =function (db) {
     )
   }))
 
+  function authorByUser(user, cb) {
+    db.authorByUser.get( (err, users)=>{
+      if (err) return cb(err)
+      const authors = users[user] || {}
+      const total = Object.keys(authors).reduce( (acc, k)=> acc += authors[k] , 0)
+      const list = Object.keys(authors).reduce( (acc, author)=>{
+        acc.push({
+          author,
+          confidence: authors[author] / total
+        })
+        return acc
+      }, [])
+      list.sort( (a, b)=> b.confidence - a.confidence )
+      cb(null, list) 
+    })
+  }
+  
   function byName(name, opts) {
     return db.version.read(Object.assign({
       'gt': name + '@',
@@ -125,6 +151,7 @@ module.exports =function (db) {
   }
 
   return {
+    authorByUser,
     byName,
     byId,
     byAuthor,

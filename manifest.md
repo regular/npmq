@@ -18,6 +18,22 @@ usage(command)
 
  - command: string, the name of a subcommand (optional)
 
+## whois: source
+
+Get the real name of an npm user
+
+```bash
+whois {name}
+```
+
+```js
+whois(name)
+```
+
+ - name: the name of an npm account
+
+Returns a stream of possible real names complete with confidence levels between 0 and 1
+
 ## whatDoTheyUse: source
 
 Find out what modules are most often depended upon by a group of people.

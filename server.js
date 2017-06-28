@@ -23,6 +23,10 @@ const api = {
     console.log(typeof cb)
     cb(null, mdm.usage(mdmanifest, command))
   },
+  whois: function(name) {
+    if (!name) return pull.error(MissingArgError('name'))
+    return commands.whois(name)
+  },
   whatDoTheyUse: function() {
     const authors = Array.from(arguments).filter( (e)=>typeof e === 'string') 
     let opts
@@ -40,3 +44,28 @@ const tcp_server = tcp( (client) => {
   pull(rpc_stream, client, rpc_stream)
 })
 tcp_server.listen(8099, '127.0.0.1')
+
+/// -- httpd
+const http = require('http');
+const ecstatic = require('ecstatic')
+const ws = require('pull-ws/server')
+
+const http_server = http.createServer(
+   ecstatic({ root: __dirname + '/public' })
+).listen(8080)
+console.log('httpd Listening on :8080')
+ws({
+  server: http_server,
+}, (client) => {
+  const rpc_server = muxrpc(null, manifest)(api)
+  const rpc_stream = rpc_server.createStream(/*console.log.bind(console, 'stream is closed')*/)
+  pull(
+    rpc_stream,
+    //pull.map( (x)=>JSON.stringify(x) ),
+    //pull.through( (d)=> console.log(`to ws ${d}`) ),
+    client,
+    //pull.through( (d)=> console.log(`from ws ${d}`) ),
+    //pull.map( (x)=>JSON.parse(x) ),
+    rpc_stream
+  )
+})

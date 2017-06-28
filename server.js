@@ -15,12 +15,10 @@ const manifest = mdm.manifest(mdmanifest)
 
 const api = {
   usage: function (command, cb) {
-    console.log(arguments)
     if (typeof command === 'function') {
       cb = command
       command = null
     }
-    console.log(typeof cb)
     cb(null, mdm.usage(mdmanifest, command))
   },
   whois: function(name, opts) {
@@ -33,7 +31,6 @@ const api = {
     //jshint -W030
     typeof (opts = Array.from(arguments).pop()) === 'object' || (opts = {})
     if (!authors.length) return pull.error(MissingArgError('authors'))
-    //console.log(authors, opts)
     return commands.whatDoTheyUse(authors, opts)
   }
 }
@@ -61,11 +58,9 @@ ws({
   const rpc_stream = rpc_server.createStream(/*console.log.bind(console, 'stream is closed')*/)
   pull(
     rpc_stream,
-    //pull.map( (x)=>JSON.stringify(x) ),
     //pull.through( (d)=> console.log(`to ws ${d}`) ),
     client,
     //pull.through( (d)=> console.log(`from ws ${d}`) ),
-    //pull.map( (x)=>JSON.parse(x) ),
     rpc_stream
   )
 })

@@ -1,5 +1,3 @@
-console.log('Hello World')
-
 const ws = require('pull-ws/client');
 const fs = require('fs')
 const pull = require('pull-stream')
@@ -16,9 +14,7 @@ ws('/ws', {binary: true, onConnect: (err, ws_stream) => {
   pull(
     ws_stream,
     //pull.through( (d)=> console.log(`from ws ${d}`) ),
-    //pull.map( (x)=>JSON.parse(x) ),
     rpc_stream,
-    //pull.map( (x)=>JSON.stringify(x) ),
     //pull.through( (d)=> console.log(`to ws ${d}`) ),
     ws_stream
   )

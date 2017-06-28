@@ -24,7 +24,7 @@ function appendLogStream(inputfile) {
   let i = 0
   setInterval( ()=>{
     db.numRecords.get( (err, records) => {
-      //process.stderr.write(`\rSyncing ... (${records} records in log. Hit Ctrl-C to exit.) ${'⠁⠃⠇⠃'[i = (i+1) % 4]}`)
+      process.stderr.write(`\rSyncing ... (${records} records in log. Hit Ctrl-C to exit.) ${'⠁⠃⠇⠃'[i = (i+1) % 4]}`)
     })
   }, 1000)
 
@@ -235,7 +235,6 @@ module.exports = {
   whois: function(name, opts) {
     opts = opts || {}
     minConfidence = 'minConfidence' in opts ? opts.minConfidence : 0.2
-    console.log(minConfidence)
     const counters = {}
     const totals = {author:0, user:0}
 

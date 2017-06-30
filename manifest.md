@@ -37,6 +37,22 @@ whois(name, { minConfidence:, raw: })
 
 Returns a stream of possible author names and/or user names complete with confidence levels between 0 and 1
 
+## repo: source
+
+Find a package by its repository URL.
+
+```bash
+repo {urlPrefix}
+```
+
+```js
+repo(urlPrefix)
+```
+
+ - urlPrefix: teh URL prefix to seatch for
+
+Returns a stream of package meta data where the repo URL starts with the given prefix
+
 ## whatDoTheyUse: source
 
 Find out what modules are most often depended upon by a group of people.

@@ -246,7 +246,7 @@ module.exports = {
         totals[propName] += e.count
       })
     }
-    
+
     return pull( 
       cat([
         many([
@@ -279,6 +279,7 @@ module.exports = {
       pull.filter( (e)=> e.confidence || opts.raw )
     )
   },
+  findRepo: Q.byRepo,
   whatDoTheyUse: function(authors, opts) {
     opts = opts || {}
     let limit = opts.limit || 40

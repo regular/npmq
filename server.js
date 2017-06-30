@@ -25,6 +25,10 @@ const api = {
     if (!name) return pull.error(MissingArgError('name'))
     return commands.whois(name, opts)
   },
+  repo: function(name, opts) {
+    if (!name) return pull.error(MissingArgError('repo name'))
+    return commands.findRepo(name, opts)
+  },
   whatDoTheyUse: function() {
     const authors = Array.from(arguments).filter( (e)=>typeof e === 'string') 
     let opts

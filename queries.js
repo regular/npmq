@@ -77,6 +77,10 @@ module.exports =function (db) {
       `${e._id}:${k}@${deps[k]}` 
     )
   }))
+  .use('repo', Index(13, function (e) {
+    //  https://github.com/ghuser/reponame.git
+    return [e.repo] || []
+  }))
 
   function makeWhoIsQuery(view, propName, searchByProp) {
     return function (name) {
@@ -101,6 +105,13 @@ module.exports =function (db) {
     return db.version.read(Object.assign({
       'gt': name + '@',
       'lt': name + '@~'  
+    }, opts))
+  }
+
+  function byRepo(name, opts) {
+    return db.repo.read(Object.assign({
+      'gt': name,
+      'lt': name + '~'
     }, opts))
   }
 
@@ -167,6 +178,7 @@ module.exports =function (db) {
     byName,
     byId,
     byAuthor,
+    byRepo,
     byPublisher,
     byDependant,
     byDependency,

@@ -4,4 +4,4 @@ node_modules
 samples/data_sample_1000_records
 *.swp
 public/bundle.js
-
+npm-to-flume.db

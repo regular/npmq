@@ -9,6 +9,7 @@ const u = require('./util')
 module.exports =function (db) {
   db
   .use('numRecords', Reduce(1, (acc) => (acc || 0) + 1 ))
+  .use('lastSequence', Reduce(1, (acc, i) => acc =  i._seq))
   .use('userByAuthor', Reduce(2, (acc, {user, author}) => {
     acc = acc || {}
     const counters = acc[author] || (acc[author] = {})

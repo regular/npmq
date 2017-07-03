@@ -1,6 +1,7 @@
+const path = require('path')
 const pull = require('pull-stream')
+const mkdirp = require('mkdirp')
 const cat = require('pull-cat')
-const spawn = require('pull-spawn-process')
 const Flume = require('flumedb')
 const sort = require('pull-sort')
 const many = require('pull-many')
@@ -10,17 +11,25 @@ const semver = require('semver')
 
 const transformRecords = require('./transform')
 
-const OffsetLog = require('flumelog-offset')
+const dbRoot = process.argv[2] || path.join('.', 'npm-to-flume.db')
+console.log('db location: %s', path.resolve(dbRoot))
+mkdirp(dbRoot)
+
 const codec = require('flumecodec')
+const flumelog = require('flumelog-offset')(path.join(dbRoot,'flume'), {
+  codec: codec.json,
+  filesizeCodec: require('flumelog-offset/frame/filesizecodecs').UInt48BE
+})
+const db = require('flumedb')(flumelog)
 
 const u = require('./util')
 
-const db = Flume(OffsetLog("flume-data/flume-npm.db", codec.json))
 const Q = require('./queries')(db)
+const changesStream = require('npm-to-hypercore')
 
 // -- import
 
-function appendLogStream(inputfile) {
+function appendLogStream() {
   let i = 0
   setInterval( ()=>{
     db.numRecords.get( (err, records) => {
@@ -28,23 +37,23 @@ function appendLogStream(inputfile) {
     })
   }, 1000)
 
-  db.numRecords.get( (err, records) => {
-    console.log(`Replicating records since #${records}`)
+  db.lastSequence.get( (err, seq) => {
+    if (err) throw err
+    console.log('last seq in db', seq)
     pull(
-      spawn('tail', `-q -F +${records} ${inputfile}`.split(' ')),
-      //pull.map( (b)=>b.toString() ),
-      //pull.through(console.log),
+      changesStream(dbRoot, seq),
       transformRecords(),
-      pull.asyncMap(db.append),
+      pull.asyncMap( (doc, cb)=>{
+        db.append(doc, cb)
+      }),
       pull.onEnd( (err)=>{
-        if (err) console.error(err.message)
-        console.log('sync aborted.')
+        console.error(err)
       })
     )
   })
 }
 
-appendLogStream(__dirname + '/hypercore/data')
+appendLogStream()
 
 // -- throughs
 

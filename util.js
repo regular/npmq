@@ -17,8 +17,16 @@ function getUser(e) {
   return ( (e._npmUser && e._npmUser.name) || (e.maintainers && e.maintainers[0] && e.maintainers[0].name)) || ""
 }
 
+function toHexId(id) {
+    if (!id) return null
+    let [name, version] = parseId(id)
+    if (!name || !version) return null
+    return `${name}@${Buffer.from(version.split('.')).toString('hex')}`
+}
+
 module.exports = {
   parseId,
   getAuthorName,
-  getUser
+  getUser,
+  toHexId
 }

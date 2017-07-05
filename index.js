@@ -9,8 +9,6 @@ const defer = require('pull-defer')
 const debug = require('debug')('npm-mining')
 const semver = require('semver')
 
-const transformRecords = require('./transform')
-
 const dbRoot = process.argv[2] || path.join('.', 'npm-to-flume.db')
 console.log('db location: %s', path.resolve(dbRoot))
 mkdirp(dbRoot)
@@ -18,14 +16,14 @@ mkdirp(dbRoot)
 const codec = require('flumecodec')
 const flumelog = require('flumelog-offset')(path.join(dbRoot,'flume'), {
   codec: codec.json,
-  filesizeCodec: require('flumelog-offset/frame/filesizecodecs').UInt48BE
+  bits: 48
 })
 const db = require('flumedb')(flumelog)
 
 const u = require('./util')
 
 const Q = require('./queries')(db)
-const changesStream = require('npm-to-hypercore')
+const changesStream = require('pull-npm-registry')
 
 // -- import
 
@@ -39,10 +37,23 @@ function appendLogStream() {
 
   db.lastSequence.get( (err, seq) => {
     if (err) throw err
+    seq = seq || 0
     console.log('last seq in db', seq)
     pull(
-      changesStream(dbRoot, seq),
-      transformRecords(),
+      changesStream(seq),
+      pull.asyncMap( (doc, cb)=>{
+        // do we know about this revision already?
+        let hexId = u.toHexId(doc.id)
+        //console.log(hexId)
+        db.version.get(hexId, (err, value)=>{
+          if (!err && value) {
+            //console.log(`already know about ${hexId}`)
+            return cb(null, null) // already known
+          }
+          return cb(null, doc)
+        })
+      }),
+      pull.filter(),
       pull.asyncMap( (doc, cb)=>{
         db.append(doc, cb)
       }),

@@ -6,6 +6,14 @@ const debug = require('debug')('queries')
 
 const u = require('./util')
 
+// more queries could be:
+/*
+    if (m.dist && m.dist.tarball) r.tarball = m.dist.tarball
+    if (m.dist && m.dist.integrity) r.integrity = m.dist.integrity
+    var sha = m._shasum || (m.dist || {}).shasum
+    if (sha) r.sha = sha
+*/
+
 module.exports =function (db) {
   db
   .use('numRecords', Reduce(1, (acc) => (acc || 0) + 1 ))
@@ -31,9 +39,9 @@ module.exports =function (db) {
   .use('version', Index(3, (e) => {
     // npm-ssb@0100ab (sorts correctly)
     if (!e._id) return []
-    let [name, version] = u.parseId(e._id)
-    if (!name || !version) return []
-    return [`${name}@${Buffer.from(version.split('.')).toString('hex')}`]
+    let hexId = u.toHexId(e._id)
+    if (!hexId) return []
+    return [hexId]
   }))
   .use('deps', Index(8, function (e) {
     // pull-stream:npm-ssb@1.1.0:~2.4.x
@@ -80,7 +88,8 @@ module.exports =function (db) {
   }))
   .use('repo', Index(13, function (e) {
     //  https://github.com/ghuser/reponame.git
-    return [e.repo] || []
+    if (e.repository && e.repository.url) return [e.repository.url]
+    return []
   }))
 
   function makeWhoIsQuery(view, propName, searchByProp) {

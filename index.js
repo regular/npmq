@@ -186,7 +186,7 @@ function goodModules() {
 //goodModules()
 //return
 
-function transitiveDependenciesOf() {
+function transitiveDependenciesOf(opts) {
   //console.log(`outer ${name}`)
 
   let seen = []
@@ -201,7 +201,7 @@ function transitiveDependenciesOf() {
   function _transitiveDependenciesOf(id) {
     if (!isNew(id)) return pull.empty()
     return pull(
-      Q.byDependant(id),
+      Q.byDependant(id, opts),
       value(),
       resolveSemverRange(),
       pull.map( (candidates)=>candidates[0]),
@@ -235,18 +235,27 @@ function scuttleverse() {
   )  
 }
 
-function showDependencies(name) {
-  pull(
-    Q.latestVersion(name),
-    value(),
-    pull.map( (e)=> Q.byDependant(e._id) ),
+function get(name_or_id) {
+  if (name_or_id.indexOf('@') !== -1) {
+    return Q.byId(name_or_id) 
+  } else {
+    return Q.latestVersion(name_or_id)
+  }
+}
+
+function dependencies(opts) {
+  opts = opts || {}
+  
+  let deps = pull(
+    pull.map( (e)=> Q.byDependant(e._id, opts) ),
     pull.flatten(),
-    value(),
+    value()
+  )
+  if (!opts.resolve) return deps
+  return pull(
+    deps,
     resolveSemverRange(),
-    pull.map( (candidates)=>candidates[0]),
-    //pull.through( debug ),
-    details(),
-    logAndCount()
+    pull.map( (candidates)=>candidates[0])
   )
 }
 
@@ -256,6 +265,13 @@ function showDependencies(name) {
 module.exports = {
   size: function(id) {
     return tarbllSize(id)
+  },
+  deps: function(name_or_id, opts) {
+    return pull(
+      get(name_or_id),
+      value(),
+      opts.transitive ? transitiveDependenciesOf(opts) : dependencies(opts)
+    )
   },
   whois: function(name, opts) {
     opts = opts || {}

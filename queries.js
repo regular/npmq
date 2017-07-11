@@ -172,7 +172,7 @@ module.exports =function (db) {
     // npm-ssb@1.1.0:pull-sort@1.x.x 2.x.x
     opts = opts || {}
     return pull(
-      db[opts.includeDev ? "requireDev" : "require"].read({
+      db[opts.dev ? "requireDev" : "require"].read({
         'gt': `${id}:`,
         'lt': `${id}:~`
       }),

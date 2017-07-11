@@ -29,6 +29,10 @@ const api = {
     if (!id) return pull.error(MissingArgError('id'))
     return commands.size(id)
   },
+  deps: function(name_or_id, opts) {
+    if (!name_or_id) return pull.error(MissingArgError('name_or_id'))
+    return commands.deps(name_or_id, opts)
+  },
   repo: function(name, opts) {
     if (!name) return pull.error(MissingArgError('repo name'))
     return commands.findRepo(name, opts)

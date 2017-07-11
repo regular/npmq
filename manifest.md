@@ -18,6 +18,26 @@ usage(command)
 
  - command: string, the name of a subcommand (optional)
 
+## deps: source
+
+Get the dependencies of a package
+
+```bash
+deps {name_or_id} [--resolve, --dev, --transitive]
+```
+
+```js
+deps(name_or_id, { resolve:, dev:, transitive: })
+```
+
+ - name_or_id: the id (name@version) or name of a package. If no version is given, the latest version will be picked.
+ - opts:
+   - resolve: whether to resolve to latest matching package. (defaults to false) 
+   - dev: include dev dependencies
+   - transitive: traverse transitive dependencies (dpes of deps), implies --resolve
+
+Returns a stream of dependencies.
+
 ## size: source
 
 Get the size (in bytes) of a package

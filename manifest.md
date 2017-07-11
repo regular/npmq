@@ -18,6 +18,22 @@ usage(command)
 
  - command: string, the name of a subcommand (optional)
 
+## size: source
+
+Get the size (in bytes) of a package
+
+```bash
+size {id}
+```
+
+```js
+size(id)
+```
+
+ - id: the id (name@version) of a package
+
+Returns the size of the package tarball.
+
 ## whois: source
 
 Get the real name of an npm user

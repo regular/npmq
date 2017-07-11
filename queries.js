@@ -126,9 +126,10 @@ module.exports =function (db) {
   }
 
   function byId(id) {
+    let hexId = u.toHexId(id)
     return db.version.read({
-      'gte': id,
-      'lte': id  
+      'gte': hexId,
+      'lte': hexId  
     })
   }
 

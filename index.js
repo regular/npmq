@@ -8,6 +8,7 @@ const many = require('pull-many')
 const defer = require('pull-defer')
 const debug = require('debug')('npm-mining')
 const semver = require('semver')
+const TarballSize = require('./tarball-size')
 
 const dbRoot = process.argv[2] || path.join('.', 'npm-to-flume.db')
 console.log('db location: %s', path.resolve(dbRoot))
@@ -24,6 +25,7 @@ const u = require('./util')
 
 const Q = require('./queries')(db)
 const changesStream = require('pull-npm-registry')
+const tarbllSize = TarballSize(dbRoot, Q)
 
 // -- import
 
@@ -252,6 +254,9 @@ function showDependencies(name) {
 
 //scuttleverse()
 module.exports = {
+  size: function(id) {
+    return tarbllSize(id)
+  },
   whois: function(name, opts) {
     opts = opts || {}
     minConfidence = 'minConfidence' in opts ? opts.minConfidence : 0.2

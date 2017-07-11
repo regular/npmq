@@ -25,6 +25,10 @@ const api = {
     if (!name) return pull.error(MissingArgError('name'))
     return commands.whois(name, opts)
   },
+  size: function(id) {
+    if (!id) return pull.error(MissingArgError('id'))
+    return commands.size(id)
+  },
   repo: function(name, opts) {
     if (!name) return pull.error(MissingArgError('repo name'))
     return commands.findRepo(name, opts)

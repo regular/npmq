@@ -14,6 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bytewise": "^1.1.0",
     "debug": "^2.6.8",
     "ecstatic": "^2.2.1",
     "flumecodec": "0.0.0",
@@ -21,6 +22,8 @@
     "flumelog-offset": "^3.0.2",
     "flumeview-level": "^2.0.3",
     "flumeview-reduce": "^1.1.0",
+    "hyperquest": "^2.1.2",
+    "level": "^1.7.0",
     "mdmanifest": "^1.0.8",
     "mkdirp": "^0.5.1",
     "muxrpc": "^6.3.3",

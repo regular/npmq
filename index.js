@@ -75,14 +75,14 @@ function value() {
 }
 
 function name() {
-  return pull.map( (e)=> u.parseId((((e.value || {})._id) || "n/a@"))[0] )
+  return pull.map( (e)=> u.parseId((((e.value || {}).id) || "n/a@"))[0] )
 }
 
 function details() {
   function keys(dependencies) {
     return Object.keys(dependencies||{}).join(' ')
   }
-  return pull.map((e)=> `${e._id} ${e.author && e.author.name} d: ${keys(e.dependencies)} D: ${keys(e.devDependencies)}`)
+  return pull.map((e)=> `${e.id} ${e.author && e.author.name} d: ${keys(e.dependencies)} D: ${keys(e.devDependencies)}`)
 }
 
 function resolveSemverRange() {
@@ -90,13 +90,13 @@ function resolveSemverRange() {
     pull.asyncMap( ({name, range}, cb)=>{
       // is it a tag?
       db.tags.get(`${name}@${range}`, (err, qr)=>{
-        if (!err && qr) cb(err, [qr.value])
+        if (!err && qr) return cb(err, [qr])
         pull(
           Q.byName(name, {reverse: true}),
           value(),
-          //pull.through( (e)=>debug(e._id) ),
+          //pull.through( (e)=>debug(e.id) ),
           pull.filter( (e)=>{
-            [name, version] = u.parseId(e._id)
+            [name, version] = u.parseId(e.id)
             return semver.satisfies(version, range)
           }),
           pull.collect( (err, resolved)=>{
@@ -212,16 +212,16 @@ function transitiveDependenciesOf(opts) {
       pull.through( (e)=>e.requiredBy = id),
       pull.map( (e)=> many([
         pull.once(e),
-        _transitiveDependenciesOf(e._id)
+        _transitiveDependenciesOf(e.id)
       ])),
       pull.flatten()
     )
   }
   
   return pull(
-    pull.map( (e)=> _transitiveDependenciesOf(e._id) ),
+    pull.map( (e)=> _transitiveDependenciesOf(e.id) ),
     pull.flatten(),
-    pull.unique( (e)=>e._id)
+    pull.unique( (e)=>e.id)
   )
 }
 
@@ -234,7 +234,7 @@ function scuttleverse() {
     transitiveDependenciesOf(),
     //sort( (a,b)=>a.localeCompare(b) ),
     //details(),
-    pull.map( (e)=>`${e._id} (required by ${e.requiredBy})` ),
+    pull.map( (e)=>`${e.id} (required by ${e.requiredBy})` ),
     logAndCount()
   )  
 }
@@ -251,7 +251,7 @@ function dependencies(opts) {
   opts = opts || {}
   
   let deps = pull(
-    pull.map( (e)=> Q.byDependant(e._id, opts) ),
+    pull.map( (e)=> Q.byDependant(e.id, opts) ),
     pull.flatten(),
     value()
   )
@@ -272,7 +272,7 @@ module.exports = {
     return pull(
       get(name_or_id),
       opts.transitive ? transitiveDependenciesOf(opts) : value(),
-      pull.through( console.log ),
+      //pull.through( console.log ),
       tarballSize()
     )
   },

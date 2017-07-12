@@ -3,6 +3,7 @@ const pull = require('pull-stream')
 const hyperquest = require('hyperquest')
 const Level = require('level')
 const bytewise = require('bytewise')
+const u = require('./util')
 
 module.exports = function(dbRoot, Q) {
  const cache = Level(path.join(dbRoot, 'tarball-size'), {keyEncoding: bytewise, valueEncoding: 'json'})
@@ -10,9 +11,7 @@ module.exports = function(dbRoot, Q) {
   return function tarballSize() {
     return pull(
       pull.asyncMap( (e, cb)=>{
-        let [name, version] = e._id.split('@')
-        let [numbers, postfix] = version.split('-')
-        let key = [name].concat(numbers.split('.').map(Number)).concat([postfix])
+        let key = u.toArrayId(e.id)
         cache.get(key, (err, value) => {
           e.size = err ? undefined : value
           e._key = key
@@ -20,9 +19,9 @@ module.exports = function(dbRoot, Q) {
         })
       }),
       pull.asyncMap( (e, cb) => {
-        if (typeof e.size !== 'undefined') return cb(null, [{id: e._id, size: e.size, cached: true}])
+        if (typeof e.size !== 'undefined') return cb(null, [Object.assign(e, {cached: true})])
         cb(null, pull(
-          Q.byId(e._id),
+          Q.byId(e.id),
           pull.map( (qr)=>{
             return qr.value && qr.value.dist && qr.value.dist.tarball
           }),
@@ -39,7 +38,7 @@ module.exports = function(dbRoot, Q) {
             cache.put(e._key, size)
           }),
           pull.map( (size)=>{
-            return {id: e._id, size, cached: false}
+            return Object.assign(e, {size, cached: false})
           })
         ))
       }),

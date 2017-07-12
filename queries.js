@@ -36,45 +36,45 @@ module.exports =function (db) {
     if (!(e._npmUser && e._npmUser.name) || !(e.author && e.author.name)) return null
     return {user: e._npmUser.name, author: e.author.name}
   }))
-  .use('tags', Index(1, (e) => {
+  .use('tags', Index(2, (e) => {
     // npm-ssb@latest
-    if (!e._id) return []
-    let [name, version] = u.parseId(e._id)
+    if (!e.id) return []
+    let [name, version] = u.parseId(e.id)
     if (!name || !version) return []
     let tags = e['_dist-tags']
     return Object.keys(tags).filter( tag => tags[tag] === version ).map( tag => `${name}@${tag}` )
   }))
-  .use('version', Index(4, (e) => {
+  .use('version', Index(5, (e) => {
     // [npm-ssb,1,1,0,alpha,1] (sorts correctly, see typewise-semver)
-    if (!e._id) return []
-    let arrId = u.toArrayId(e._id)
+    if (!e.id) return []
+    let arrId = u.toArrayId(e.id)
     if (!arrId) return []
     //console.log(arrId)
     return [arrId]
   }))
-  .use('deps', Index(8, function (e) {
+  .use('deps', Index(9, function (e) {
     // pull-stream:npm-ssb@1.1.0:~2.4.x
     let deps = e.dependencies||{};
-    return Object.keys(deps).map((d)=>d+':'+e._id+':'+deps[d]) 
+    return Object.keys(deps).map((d)=>d+':'+e.id+':'+deps[d]) 
   }))
-  .use('devDeps', Index(8, function (e) {
+  .use('devDeps', Index(9, function (e) {
     // tape:npm-ssb@1.1.0:~2.4.x
     let deps = e.devDependencies||{};
-    return Object.keys(deps).map((d)=>d+':'+e._id+':'+deps[d])
+    return Object.keys(deps).map((d)=>d+':'+e.id+':'+deps[d])
   }))
-  .use('author', Index(5, function (e) {
+  .use('author', Index(8, function (e) {
     // janblsche:npm-ssb
-    if (!e._id) return []
-    let [name, version] = u.parseId(e._id)
+    if (!e.id) return []
+    let [name, version] = u.parseId(e.id)
     return [u.getAuthorName(e).replace(/[^a-zA-Z]/g, '').toLowerCase()+":"+name]
   }))
-  .use('user', Index(7, function (e) {
+  .use('user', Index(8, function (e) {
     // regular:npm-ssb
-    if (!e._id) return []
-    let [name, version] = u.parseId(e._id)
+    if (!e.id) return []
+    let [name, version] = u.parseId(e.id)
     return [u.getUser(e)+":"+name]
   }))
-  .use('requireDev', Index(1, function (e) {
+  .use('requireDev', Index(2, function (e) {
     // npm-ssb@1.1.0:pull-stream@~2.1.0
     let deps = Object.assign(
       {},
@@ -82,17 +82,17 @@ module.exports =function (db) {
       e.devDependencies || {}
     )
     return Object.keys(deps).map( (k)=>
-      `${e._id}:${k}@${deps[k]}` 
+      `${e.id}:${k}@${deps[k]}` 
     )
   }))
-  .use('require', Index(12, function (e) {
+  .use('require', Index(13, function (e) {
     // npm-ssb@1.1.0:pull-stream@~2.1.0
     let deps = Object.assign(
       {},
       e.dependencies || {}
     )
     return Object.keys(deps).map( (k)=>
-      `${e._id}:${k}@${deps[k]}` 
+      `${e.id}:${k}@${deps[k]}` 
     )
   }))
   .use('repo', Index(13, function (e) {
@@ -184,7 +184,7 @@ module.exports =function (db) {
         'lt': [name, ''],
         reverse: true
       }),
-      pull.through( (e)=>debug(`latest version of ${name}: ${e.value._id}`) ),
+      pull.through( (e)=>debug(`latest version of ${name}: ${e.value.id}`) ),
       pull.take(1)
     )
     */

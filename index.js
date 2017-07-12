@@ -33,7 +33,7 @@ function appendLogStream() {
   let i = 0
   setInterval( ()=>{
     db.numRecords.get( (err, records) => {
-      //process.stderr.write(`\rSyncing ... (${records} records in log. Hit Ctrl-C to exit.) ${'⠁⠃⠇⠃'[i = (i+1) % 4]}`)
+      process.stderr.write(`\rSyncing ... (${records} records in log. Hit Ctrl-C to exit.) ${'⠁⠃⠇⠃'[i = (i+1) % 4]}`)
     })
   }, 1000)
 
@@ -88,20 +88,24 @@ function details() {
 function resolveSemverRange() {
   return pull(
     pull.asyncMap( ({name, range}, cb)=>{
-      pull(
-        Q.byName(name, {reverse: true}),
-        value(),
-        //pull.through( (e)=>debug(e._id) ),
-        pull.filter( (e)=>{
-          [name, version] = u.parseId(e._id)
-          return semver.satisfies(version, range)
-        }),
-        pull.collect( (err, resolved)=>{
-          if (err) return cb(err)
-          if (!resolved.length) return cb(new Error(`Unable to resolve ${name}@${range}`))
-          cb(null, resolved)
-        })
-      )
+      // is it a tag?
+      db.tags.get(`${name}@${range}`, (err, qr)=>{
+        if (!err && qr) cb(err, [qr.value])
+        pull(
+          Q.byName(name, {reverse: true}),
+          value(),
+          //pull.through( (e)=>debug(e._id) ),
+          pull.filter( (e)=>{
+            [name, version] = u.parseId(e._id)
+            return semver.satisfies(version, range)
+          }),
+          pull.collect( (err, resolved)=>{
+            if (err) return cb(err)
+            if (!resolved.length) return cb(new Error(`Unable to resolve ${name}@${range}`))
+            cb(null, resolved)
+          })
+        )
+      })
     })
   )
 }
@@ -274,6 +278,9 @@ module.exports = {
   },
   versions: function(name) {
     return Q.byName(name)
+  },
+  tags: function(name) {
+    return Q.tagsByName(name) 
   },
   deps: function(name_or_id, opts) {
     opts = opts || {}

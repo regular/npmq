@@ -33,6 +33,10 @@ const api = {
     if (!name) return pull.error(MissingArgError('name'))
     return commands.versions(name)
   },
+  tags: function(name) {
+    if (!name) return pull.error(MissingArgError('name'))
+    return commands.tags(name)
+  },
   deps: function(name_or_id, opts) {
     if (!name_or_id) return pull.error(MissingArgError('name_or_id'))
     return commands.deps(name_or_id, opts)

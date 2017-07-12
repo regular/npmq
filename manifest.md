@@ -18,6 +18,22 @@ usage(command)
 
  - command: string, the name of a subcommand (optional)
 
+## tags: source
+
+Get all tagged versions of a package
+
+```bash
+tags {name}
+```
+
+```js
+tags(name)
+```
+
+ - name: the name of a package.
+
+Returns a stream package objects.
+
 ## versions: source
 
 Get all versions of a package

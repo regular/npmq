@@ -36,11 +36,20 @@ module.exports =function (db) {
     if (!(e._npmUser && e._npmUser.name) || !(e.author && e.author.name)) return null
     return {user: e._npmUser.name, author: e.author.name}
   }))
+  .use('tags', Index(1, (e) => {
+    // npm-ssb@latest
+    if (!e._id) return []
+    let [name, version] = u.parseId(e._id)
+    if (!name || !version) return []
+    let tags = e['_dist-tags']
+    return Object.keys(tags).filter( tag => tags[tag] === version ).map( tag => `${name}@${tag}` )
+  }))
   .use('version', Index(4, (e) => {
     // [npm-ssb,1,1,0,alpha,1] (sorts correctly, see typewise-semver)
     if (!e._id) return []
     let arrId = u.toArrayId(e._id)
     if (!arrId) return []
+    //console.log(arrId)
     return [arrId]
   }))
   .use('deps', Index(8, function (e) {
@@ -114,13 +123,20 @@ module.exports =function (db) {
   function byName(name, opts) {
     return db.version.read(Object.assign({
       'gt': [name],
-      'lt': [name, undefined] // undefined sorts last in bytewise
+      'lt': [name, '']
+    }, opts))
+  }
+
+  function tagsByName(name, opts) {
+    return db.tags.read(Object.assign({
+      'gt': `${name}@`,
+      'lt': `${name}@~`
     }, opts))
   }
 
   function byRepo(name, opts) {
     return db.repo.read(Object.assign({
-      'gt': name,
+      'gte': name,
       'lt': name + '~'
     }, opts))
   }
@@ -156,15 +172,22 @@ module.exports =function (db) {
   }
 
   function latestVersion(name) {
+    return db.tags.read({
+      'gte': `${name}@latest`,
+      'lte': `${name}@latest`
+    })
+
+    /*
     return pull(
       db.version.read({
         'gt': [name],
-        'lt': [name, undefined],
+        'lt': [name, ''],
         reverse: true
       }),
       pull.through( (e)=>debug(`latest version of ${name}: ${e.value._id}`) ),
       pull.take(1)
     )
+    */
   }
 
   function byDependant(id, opts) { // aka dependenciesOf
@@ -188,6 +211,7 @@ module.exports =function (db) {
     authorByUser: makeWhoIsQuery( db.authorByUser, 'author', 'user'),
     byName,
     byId,
+    tagsByName,
     byAuthor,
     byRepo,
     byPublisher,

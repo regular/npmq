@@ -36,12 +36,12 @@ module.exports =function (db) {
     if (!(e._npmUser && e._npmUser.name) || !(e.author && e.author.name)) return null
     return {user: e._npmUser.name, author: e.author.name}
   }))
-  .use('version', Index(3, (e) => {
-    // npm-ssb@0100ab (sorts correctly)
+  .use('version', Index(4, (e) => {
+    // [npm-ssb,1,1,0,alpha,1] (sorts correctly, see typewise-semver)
     if (!e._id) return []
-    let hexId = u.toHexId(e._id)
-    if (!hexId) return []
-    return [hexId]
+    let arrId = u.toArrayId(e._id)
+    if (!arrId) return []
+    return [arrId]
   }))
   .use('deps', Index(8, function (e) {
     // pull-stream:npm-ssb@1.1.0:~2.4.x
@@ -56,13 +56,13 @@ module.exports =function (db) {
   .use('author', Index(5, function (e) {
     // janblsche:npm-ssb
     if (!e._id) return []
-    let [name,version] = u.parseId(e._id)
+    let [name, version] = u.parseId(e._id)
     return [u.getAuthorName(e).replace(/[^a-zA-Z]/g, '').toLowerCase()+":"+name]
   }))
   .use('user', Index(7, function (e) {
     // regular:npm-ssb
     if (!e._id) return []
-    let [name,version] = u.parseId(e._id)
+    let [name, version] = u.parseId(e._id)
     return [u.getUser(e)+":"+name]
   }))
   .use('requireDev', Index(1, function (e) {
@@ -113,8 +113,8 @@ module.exports =function (db) {
 
   function byName(name, opts) {
     return db.version.read(Object.assign({
-      'gt': name + '@',
-      'lt': name + '@~'  
+      'gt': [name],
+      'lt': [name, undefined] // undefined sorts last in bytewise
     }, opts))
   }
 
@@ -126,10 +126,10 @@ module.exports =function (db) {
   }
 
   function byId(id) {
-    let hexId = u.toHexId(id)
+    let arrId = u.toArrayId(id)
     return db.version.read({
-      'gte': hexId,
-      'lte': hexId  
+      'gte': arrId,
+      'lte': arrId  
     })
   }
 
@@ -158,8 +158,8 @@ module.exports =function (db) {
   function latestVersion(name) {
     return pull(
       db.version.read({
-        'gt': `${name}@`,
-        'lt': `${name}@~`,
+        'gt': [name],
+        'lt': [name, undefined],
         reverse: true
       }),
       pull.through( (e)=>debug(`latest version of ${name}: ${e.value._id}`) ),

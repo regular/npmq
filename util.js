@@ -1,3 +1,5 @@
+const tw_semver = require('typewise-semver')
+const semver = require('semver')
 
 function parseId(id) {
   if (id[0]==='@') {
@@ -17,16 +19,18 @@ function getUser(e) {
   return ( (e._npmUser && e._npmUser.name) || (e.maintainers && e.maintainers[0] && e.maintainers[0].name)) || ""
 }
 
-function toHexId(id) {
+function toArrayId(id) {
     if (!id) return null
     let [name, version] = parseId(id)
     if (!name || !version) return null
-    return `${name}@${Buffer.from(version.split('.')).toString('hex')}`
+    //console.log('parse version',name, version)
+    if (semver.parse(version) === null) return null
+    return [name].concat(tw_semver.parse(version))
 }
 
 module.exports = {
   parseId,
   getAuthorName,
   getUser,
-  toHexId
+  toArrayId
 }

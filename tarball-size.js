@@ -7,22 +7,22 @@ const bytewise = require('bytewise')
 module.exports = function(dbRoot, Q) {
  const cache = Level(path.join(dbRoot, 'tarball-size'), {keyEncoding: bytewise, valueEncoding: 'json'})
 
-  return function getTarrBallSize(id) {
-    let [name, version] = id.split('@')
-    let [numbers, postfix] = version.split('-')
-    let key = [name].concat(numbers.split('.').map(Number)).concat([postfix])
-    console.log(`key ${key}\n`)
+  return function tarballSize() {
     return pull(
-      pull.once(key),
-      pull.asyncMap( (key, cb)=>{
+      pull.asyncMap( (e, cb)=>{
+        let [name, version] = e._id.split('@')
+        let [numbers, postfix] = version.split('-')
+        let key = [name].concat(numbers.split('.').map(Number)).concat([postfix])
         cache.get(key, (err, value) => {
-          cb(null, err ? undefined : value)
+          e.size = err ? undefined : value
+          e._key = key
+          cb(null, e)
         })
       }),
-      pull.asyncMap( (size, cb) => {
-        if (typeof size !== 'undefined') return cb(null, [{size, cached: true}])
+      pull.asyncMap( (e, cb) => {
+        if (typeof e.size !== 'undefined') return cb(null, [{id: e._id, size: e.size, cached: true}])
         cb(null, pull(
-          Q.byId(id),
+          Q.byId(e._id),
           pull.map( (qr)=>{
             return qr.value && qr.value.dist && qr.value.dist.tarball
           }),
@@ -36,10 +36,10 @@ module.exports = function(dbRoot, Q) {
           pull.filter(),
           pull.map(Number),
           pull.through( (size)=>{
-            cache.put(key, size)
+            cache.put(e._key, size)
           }),
           pull.map( (size)=>{
-            return {size, cached: false}
+            return {id: e._id, size, cached: false}
           })
         ))
       }),

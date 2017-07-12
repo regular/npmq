@@ -38,6 +38,7 @@
     "pull-stream": "^3.6.0",
     "pull-ws": "^3.2.9",
     "semver": "^5.3.0",
+    "typewise-semver": "^1.0.0-alpha.0",
     "zerr": "^1.0.4"
   },
   "devDependencies": {

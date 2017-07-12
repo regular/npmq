@@ -25,7 +25,7 @@ const u = require('./util')
 
 const Q = require('./queries')(db)
 const changesStream = require('pull-npm-registry')
-const tarbllSize = TarballSize(dbRoot, Q)
+const tarballSize = TarballSize(dbRoot, Q)
 
 // -- import
 
@@ -33,7 +33,7 @@ function appendLogStream() {
   let i = 0
   setInterval( ()=>{
     db.numRecords.get( (err, records) => {
-      process.stderr.write(`\rSyncing ... (${records} records in log. Hit Ctrl-C to exit.) ${'⠁⠃⠇⠃'[i = (i+1) % 4]}`)
+      //process.stderr.write(`\rSyncing ... (${records} records in log. Hit Ctrl-C to exit.) ${'⠁⠃⠇⠃'[i = (i+1) % 4]}`)
     })
   }, 1000)
 
@@ -45,11 +45,11 @@ function appendLogStream() {
       changesStream(seq),
       pull.asyncMap( (doc, cb)=>{
         // do we know about this revision already?
-        let hexId = u.toHexId(doc.id)
-        //console.log(hexId)
-        db.version.get(hexId, (err, value)=>{
+        let arrId = u.toArrayId(doc.id)
+        //console.log(arrId)
+        db.version.get(arrId, (err, value)=>{
           if (!err && value) {
-            //console.log(`already know about ${hexId}`)
+            //console.log(`already know about ${arrId}`)
             return cb(null, null) // already known
           }
           return cb(null, doc)
@@ -263,10 +263,20 @@ function dependencies(opts) {
 
 //scuttleverse()
 module.exports = {
-  size: function(id) {
-    return tarbllSize(id)
+  size: function(name_or_id, opts) {
+    opts = opts || {}
+    return pull(
+      get(name_or_id),
+      opts.transitive ? transitiveDependenciesOf(opts) : value(),
+      pull.through( console.log ),
+      tarballSize()
+    )
+  },
+  versions: function(name) {
+    return Q.byName(name)
   },
   deps: function(name_or_id, opts) {
+    opts = opts || {}
     return pull(
       get(name_or_id),
       value(),

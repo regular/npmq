@@ -18,6 +18,22 @@ usage(command)
 
  - command: string, the name of a subcommand (optional)
 
+## versions: source
+
+Get all versions of a package
+
+```bash
+versions {name}
+```
+
+```js
+versions(name)
+```
+
+ - name: the name of a package.
+
+Returns a stream of version strings.
+
 ## deps: source
 
 Get the dependencies of a package
@@ -43,16 +59,20 @@ Returns a stream of dependencies.
 Get the size (in bytes) of a package
 
 ```bash
-size {id}
+size {name_or_id} [--transitive, --dev]
 ```
 
 ```js
-size(id)
+size(name_or_id, { transitive:, dev: })
 ```
 
- - id: the id (name@version) of a package
+ - name_or_id: the id (name@version) or name of a package. If no version is given, the latest version will be picked.
 
-Returns the size of the package tarball.
+ - opts:
+   - transitive: traverse transitive dependencies (dpes of deps) and calculate total size
+   - dev: include dev dependencies in size total (requires --transtivie)
+
+Returns the size of a package's tarball or total size of all transtivie dependencies' tarballs.
 
 ## whois: source
 

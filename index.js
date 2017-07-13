@@ -85,7 +85,7 @@ function details() {
   return pull.map((e)=> `${e.id} ${e.author && e.author.name} d: ${keys(e.dependencies)} D: ${keys(e.devDependencies)}`)
 }
 
-function resolveSemverRange() {
+function resolveSemverRange(opts) {
   return pull(
     pull.asyncMap( ({name, range}, cb)=>{
       // is it a tag?
@@ -101,7 +101,13 @@ function resolveSemverRange() {
           }),
           pull.collect( (err, resolved)=>{
             if (err) return cb(err)
-            if (!resolved.length) return cb(new Error(`Unable to resolve ${name}@${range}`))
+            if (!resolved.length) {
+              let msg = `Unable to resolve ${name}@${range}`
+              if (opts.ignoreUnresolvable) {
+                return cb(null, [{error: msg}])
+              }
+              return cb(new Error(msg))
+            }
             cb(null, resolved)
           })
         )
@@ -207,7 +213,7 @@ function transitiveDependenciesOf(opts) {
     return pull(
       Q.byDependant(id, opts),
       value(),
-      resolveSemverRange(),
+      resolveSemverRange(opts),
       pull.map( (candidates)=>candidates[0]),
       pull.through( (e)=>e.requiredBy = id),
       pull.map( (e)=> many([
@@ -258,7 +264,7 @@ function dependencies(opts) {
   if (!opts.resolve) return deps
   return pull(
     deps,
-    resolveSemverRange(),
+    resolveSemverRange(opts),
     pull.map( (candidates)=>candidates[0])
   )
 }
@@ -278,14 +284,25 @@ module.exports = {
             pull.once(e),
             pull(
               pull.once(e),
-              transitiveDependenciesOf(opts)
+              transitiveDependenciesOf(
+                Object.assign({}, {
+                  ignoreUnresolvable: true
+                }, opts)
+              )
             )
           ])),
           pull.flatten()
         ) 
       : pull.through(),
-      pull.through( console.log ),
-      tarballSize()
+      pull.unique( (e)=>e.id ), // TODO: remove
+      tarballSize(),
+      (()=> {
+        let running_total = 0
+        return pull.through( (e)=>{
+          running_total += e.size || 0
+          e.running_total = running_total
+        })
+      })()
     )
   },
   versions: function(name) {

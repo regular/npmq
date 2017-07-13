@@ -9,6 +9,7 @@ const defer = require('pull-defer')
 const debug = require('debug')('npm-mining')
 const semver = require('semver')
 const TarballSize = require('./tarball-size')
+const braille = require('braille-encode').encode
 
 const dbRoot = process.argv[2] || path.join('.', 'npm-to-flume.db')
 console.log('db location: %s', path.resolve(dbRoot))
@@ -33,9 +34,14 @@ function appendLogStream() {
   let i = 0
   setInterval( ()=>{
     db.numRecords.get( (err, records) => {
-      process.stderr.write(`\rSyncing ... (${records} records in log. Hit Ctrl-C to exit.) ${'⠁⠃⠇⠃'[i = (i+1) % 4]}`)
+      i++
+      let shift = [0,1,2,3,2,1]
+      let bit1 = 1 << shift[i % 6]
+      let bit2 = 1 << (5 + shift[(i+3) % 6])
+      let spinner = braille(Buffer.from([bit1|bit2]))
+      process.stderr.write(`\r${spinner} Syncing ... (${records} records in log. Hit Ctrl-C to exit.)`)
     })
-  }, 1000)
+  }, 200)
 
   db.lastSequence.get( (err, seq) => {
     if (err) throw err

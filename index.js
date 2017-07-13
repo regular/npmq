@@ -17,7 +17,7 @@ mkdirp(dbRoot)
 const codec = require('flumecodec')
 const flumelog = require('flumelog-offset')(path.join(dbRoot,'flume'), {
   codec: codec.json,
-  bits: 48
+  offsetCodec: 48
 })
 const db = require('flumedb')(flumelog)
 
@@ -271,8 +271,20 @@ module.exports = {
     opts = opts || {}
     return pull(
       get(name_or_id),
-      opts.transitive ? transitiveDependenciesOf(opts) : value(),
-      //pull.through( console.log ),
+      value(),
+      opts.transitive ? 
+        pull(
+          pull.map( (e)=> many([
+            pull.once(e),
+            pull(
+              pull.once(e),
+              transitiveDependenciesOf(opts)
+            )
+          ])),
+          pull.flatten()
+        ) 
+      : pull.through(),
+      pull.through( console.log ),
       tarballSize()
     )
   },

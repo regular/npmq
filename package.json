@@ -1,18 +1,19 @@
 {
   "name": "npmq",
   "version": "1.0.0",
-  "description": "",
+  "description": "An npm registry follower that stores package mata data in a flumedb and offers a query CLI.",
   "main": "index.js",
   "scripts": {
     "prepare": "make",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "bin": {
-    "npm-graph": "./bin.js"
+    "npmq": "./bin.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["npm-follower", "npm"],
+  "author": "Jan Bölsche <jan@lagomorph.de> (http://regular.codes)",
+  "license": "MIT",
   "dependencies": {
     "braille-encode": "^1.0.4",
     "bytewise": "^1.1.0",
@@ -20,7 +21,7 @@
     "ecstatic": "^2.2.1",
     "flumecodec": "0.0.0",
     "flumedb": "^0.2.3",
-    "flumelog-offset": "regular/flumelog-offset#d076bf751762fe998d8fb6cfa52746df28c3aa21",
+    "flumelog-offset": "github:regular/flumelog-offset#d076bf751762fe998d8fb6cfa52746df28c3aa21",
     "flumeview-level": "^2.0.3",
     "flumeview-reduce": "^1.1.0",
     "hyperquest": "^2.1.2",
@@ -45,5 +46,9 @@
   "devDependencies": {
     "brfs": "^1.4.3",
     "browserify": "^14.4.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssb://%FJQrOe3zxWGD+kUtBnNTgFpQYdleHowNXBlw1K80VGo=.sha256"
   }
 }

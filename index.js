@@ -11,7 +11,7 @@ const semver = require('semver')
 const TarballSize = require('./tarball-size')
 const braille = require('braille-encode').encode
 
-const dbRoot = process.argv[2] || path.join('.', 'npm-to-flume.db')
+const dbRoot = process.argv[3] || path.join(process.env.HOME, '.npmq.db')
 console.log('db location: %s', path.resolve(dbRoot))
 mkdirp(dbRoot)
 

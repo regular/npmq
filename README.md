@@ -1,28 +1,27 @@
-:hammer: work in progress :hammer:
+# npmq
 
-# npm-graph
+An npm registry follower that stores package mata data in a flumedb and offers a query CLI.
+
+> Note: this requires a lot of bandwidth and disk space (~6GB at the time of writing)
 
 ## Installation
 
 ``` sh
-git clone ssb://%FJQrOe3zxWGD+kUtBnNTgFpQYdleHowNXBlw1K80VGo=.sha256 npm-graph
-cd npm-graph
-npm i
-node server.js&
+npm i -q npmq
+npmq server path/to/where/you/want/the/db/to/be/created
 # in a new terminal:
-./bin.js -h
+npmq -h
 ```
 
-## CLI Examples
+## Some examples
 ```
-npm-graph whatDoTheyUse substack domictarr maxogden
-npm-graph repo ssb
-npm i -g jsonpath-dl
-npm-graph repo ssb|jsonpath-dl _id author _npmUser | sort | uniq
-npm-graph repo https://github.com/ssbc | jsonpath-dl _id _npmUser.name | sort | uniq
-npm i -g list-github-repos
-ghorgrepos ssbc | jsonpath-dl git_url ssh_url clone_url > ssbc-repos.txt # gh has an API rate limit
+npmq whois isaacs
+npmq whatDoTheyUse substack domictarr maxogden # most popular packages among a group
+npmq repo ssb # all packages with repo URLs starting with "ssb"
+npmq size scuttlebot --transitive --dev # size of scuttlebot tarball plus tarball size of all its transitive dependencies including top-level dev dependencies.
 ```
+
+Output is double-newline-separated JSON.
 
 ## API
 

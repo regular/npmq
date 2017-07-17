@@ -27,5 +27,9 @@ rpc_client.usage( 'whatDoTheyUse', (err, text)=>{
   console.log(text)
 })
 */
+if (process.argv[2] === 'server') {
+  require('./server')
+  return
+}
 
 muxrpcli(process.argv.slice(2), manifest, rpc_client, true)

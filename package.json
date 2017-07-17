@@ -20,7 +20,7 @@
     "ecstatic": "^2.2.1",
     "flumecodec": "0.0.0",
     "flumedb": "^0.2.3",
-    "flumelog-offset": "^3.0.2",
+    "flumelog-offset": "regular/flumelog-offset#d076bf751762fe998d8fb6cfa52746df28c3aa21",
     "flumeview-level": "^2.0.3",
     "flumeview-reduce": "^1.1.0",
     "hyperquest": "^2.1.2",

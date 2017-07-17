@@ -75,18 +75,18 @@ Returns a stream of dependencies.
 Get the size (in bytes) of a package
 
 ```bash
-size {name_or_id} [--transitive, --dev]
+size {names_or_ids} [--transitive, --dev]
 ```
 
 ```js
-size(name_or_id, { transitive:, dev: })
+size(names_or_ids, { transitive:, dev: })
 ```
 
- - name_or_id: the id (name@version) or name of a package. If no version is given, the latest version will be picked.
+ - names_or_ids: a list of ids (name@version) or names of packages. If no version is given, the latest version will be picked.
 
  - opts:
    - transitive: traverse transitive dependencies (dpes of deps) and calculate total size
-   - dev: include dev dependencies in size total (requires --transtivie)
+   - dev: include dev dependencies of top-level packages (requires --transtivie)
 
 Returns the size of a package's tarball or total size of all transtivie dependencies' tarballs.
 

@@ -214,24 +214,29 @@ function transitiveDependenciesOf(opts) {
     return false
   }
 
-  function _transitiveDependenciesOf(id) {
-    if (!isNew(id)) return pull.empty()
+  function _transitiveDependenciesOf(id, level, opts) {
+    if (!id || !isNew(id)) return pull.empty()
+    // turn off dev dependencies for the next level
+    let nextOpts = Object.assign({}, opts, {dev: false})
     return pull(
       Q.byDependant(id, opts),
       value(),
       resolveSemverRange(opts),
       pull.map( (candidates)=>candidates[0]),
-      pull.through( (e)=>e.requiredBy = id),
+      pull.through( (e)=>{
+        e.requiredBy = id
+        e.distance = level
+      }),
       pull.map( (e)=> many([
         pull.once(e),
-        _transitiveDependenciesOf(e.id)
+        _transitiveDependenciesOf(e.id, level+1, nextOpts)
       ])),
       pull.flatten()
     )
   }
   
   return pull(
-    pull.map( (e)=> _transitiveDependenciesOf(e.id) ),
+    pull.map( (e)=> _transitiveDependenciesOf(e.id, 1, opts) ),
     pull.flatten(),
     pull.unique( (e)=>e.id)
   )
@@ -252,11 +257,17 @@ function scuttleverse() {
 }
 
 function get(name_or_id) {
-  if (name_or_id.indexOf('@') !== -1) {
-    return Q.byId(name_or_id) 
-  } else {
-    return Q.latestVersion(name_or_id)
-  }
+  return pull(
+    name_or_id ? pull.values([name_or_id]) : pull.through(),
+    pull.map( (name_or_id)=>{
+      if (name_or_id.indexOf('@') !== -1) {
+        return Q.byId(name_or_id) 
+      } else {
+        return Q.latestVersion(name_or_id)
+      }
+    }),
+    pull.flatten()
+  )
 }
 
 function dependencies(opts) {
@@ -279,37 +290,58 @@ function dependencies(opts) {
 
 //scuttleverse()
 module.exports = {
-  size: function(name_or_id, opts) {
+  size: function(names_or_ids, opts) {
     opts = opts || {}
-    return pull(
-      get(name_or_id),
-      value(),
-      opts.transitive ? 
-        pull(
-          pull.map( (e)=> many([
-            pull.once(e),
-            pull(
-              pull.once(e),
-              transitiveDependenciesOf(
-                Object.assign({}, {
-                  ignoreUnresolvable: true
-                }, opts)
-              )
-            )
-          ])),
-          pull.flatten()
-        ) 
-      : pull.through(),
-      pull.unique( (e)=>e.id ), // TODO: remove
-      tarballSize(),
-      (()=> {
-        let running_total = 0
-        return pull.through( (e)=>{
-          running_total += e.size || 0
-          e.running_total = running_total
-        })
-      })()
-    )
+    
+    function source() {
+      return pull(
+        pull.values(names_or_ids),
+        get(),
+        value()
+      )
+    }
+
+    function transitive() {
+      return pull(
+        transitiveDependenciesOf(
+          Object.assign({}, {
+            ignoreUnresolvable: true
+          }, opts)
+        )
+      )
+    } 
+
+    function size() {
+      return pull(
+        pull.unique( (e)=>e.id),
+        tarballSize(),
+        (()=> {
+          let running_total = 0
+          return pull.through( (e)=>{
+            running_total += e.size || 0
+            e.running_total = running_total
+          })
+        })()
+      )
+    }
+    if (opts.transitive) {
+      return pull(
+        many([
+          source(),
+          pull(
+            source(),
+            transitive()
+          )
+        ]),
+        size()
+      )
+    } else {
+      return pull(
+        source(),
+        size()
+      )
+    }
+
   },
   versions: function(name) {
     return Q.byName(name)

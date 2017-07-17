@@ -25,9 +25,13 @@ const api = {
     if (!name) return pull.error(MissingArgError('name'))
     return commands.whois(name, opts)
   },
-  size: function(name_or_id, opts) {
-    if (!name_or_id) return pull.error(MissingArgError('name_or_id'))
-    return commands.size(name_or_id, opts)
+  size: function() {
+    const names = Array.from(arguments).filter( (e)=>typeof e === 'string') 
+    let opts
+    //jshint -W030
+    typeof (opts = Array.from(arguments).pop()) === 'object' || (opts = {})
+    if (!names.length) return pull.error(MissingArgError('names_or_ids'))
+    return commands.size(names, opts)
   },
   versions: function(name) {
     if (!name) return pull.error(MissingArgError('name'))

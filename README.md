@@ -7,7 +7,7 @@ An npm registry follower that stores package mata data in a flumedb and offers a
 ## Installation
 
 ``` sh
-npm i -q npmq
+npm i -g npmq
 npmq server path/to/where/you/want/the/db/to/be/created
 # in a new terminal:
 npmq -h
@@ -25,4 +25,4 @@ Output is double-newline-separated JSON.
 
 ## API
 
-See [manifest.md](manifest.md).
+See [manifest.md](https://github.com/regular/npmq/blob/master/manifest.md).

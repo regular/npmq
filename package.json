@@ -1,6 +1,6 @@
 {
   "name": "npmq",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An npm registry follower that stores package mata data in a flumedb and offers a query CLI.",
   "main": "index.js",
   "scripts": {
@@ -49,6 +49,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "ssb://%FJQrOe3zxWGD+kUtBnNTgFpQYdleHowNXBlw1K80VGo=.sha256"
+    "url": "https://github.com/regular/npmq.git"
   }
 }

@@ -1,6 +1,6 @@
-# npm-graph
+# npmq
 
-npm-graph API, v1.0.0.
+npmq API, v1.0.0.
 
 Some high-level functions that reveal interesting stuff about npm packages and their authors.
 
